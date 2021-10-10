@@ -1,0 +1,40 @@
+{
+	"textures": {
+		"default": "default.png",
+		"default2": "default2.png",
+		"test_bg": "bg/test_bg.png"
+	},
+	"texture_sets": {
+		"tiles_base": {
+			"path": "tilesets/tiles_base.png",
+			"tex_width": 64,
+			"tex_height": 64
+		},
+		"tiles_ore": {
+			"path": "tilesets/tiles_ore.png",
+			"tex_width": 64,
+			"tex_height": 64
+		}
+	},
+	"texture_arrays": {
+
+	},
+	"texture_atlases": {
+		"default": {
+			"path": "default.png",
+			"rows": 1
+		},
+		"tiles_debug": {
+			"path": "tilesets/debug.png",
+			"rows": 8
+		},
+		"tiles_base": {
+			"path": "tilesets/tiles_base.png",
+			"rows": 8
+		},
+		"tiles_ore": {
+			"path": "tilesets/tiles_ore.png",
+			"rows": 8
+		}
+	}
+}
