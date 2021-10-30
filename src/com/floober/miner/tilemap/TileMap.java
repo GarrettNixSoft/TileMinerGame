@@ -16,6 +16,9 @@ import java.io.IOException;
 @SuppressWarnings("ManualArrayCopy")
 public class TileMap {
 
+	// saving to disk
+	private boolean saveSuccess = false;
+
 	// constants
 	public final int CHUNK_SIZE_PIXELS;
 
@@ -30,6 +33,7 @@ public class TileMap {
 	// rendering
 	private TextureAtlas typeAtlas;
 	private TextureAtlas contentsAtlas;
+	private TextureAtlas destroyedAtlas;
 
 	private final Chunk[][] screenChunks;
 	private final TileElement[][] screenTiles;
@@ -69,6 +73,8 @@ public class TileMap {
 		if (typeAtlas == null) throw new RuntimeException("typeAtlas: it's not supposed to be null why is it null");
 		contentsAtlas = Game.getTextureAtlas("tiles_ore");
 		if (contentsAtlas == null) throw new RuntimeException("contentsAtlas: it's not supposed to be null why is it null");
+		destroyedAtlas = Game.getTextureAtlas("tiles_destroyed");
+		if (destroyedAtlas == null) throw new RuntimeException("destroyedAtlas: it's not supposed to be null why is it null");
 		// set chunk values
 		chunkSize = chunks.getChunkSize();
 		CHUNK_SIZE_PIXELS = chunkSize * Tile.SIZE;
@@ -143,6 +149,8 @@ public class TileMap {
 		return tileColOffsetRaw;
 	}
 
+	public boolean saveSuccess() { return saveSuccess; }
+
 	// CREATION
 	private void initialize() {
 		loadStartingChunks();
@@ -168,7 +176,7 @@ public class TileMap {
 		for (int r = 0; r < screenTiles.length; r++) {
 			for (int c = 0; c < screenTiles[r].length; c++) {
 				Tile tile = getTileAt(r, c);
-				screenTiles[r][c] = new TileElement(typeAtlas, contentsAtlas, tile.type(), tile.contents(),
+				screenTiles[r][c] = new TileElement(typeAtlas, contentsAtlas, destroyedAtlas, tile.type(), tile.contents(),
 						r * Tile.SIZE, c * Tile.SIZE, Layers.DEFAULT_LAYER, Tile.SIZE);
 			}
 		}
@@ -233,13 +241,23 @@ public class TileMap {
 				chunk = chunks.getChunkAt(chunkRow, chunkCol); // this should be optimized by the caching system
 			}
 			chunk.setTileAt(tileRow, tileCol, new Tile(type, contents));
+			chunks.setModified(chunk);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void destroyTileAt(int row, int col) {
-		setTileAt(row, col, (byte) -1, (byte) -1);
+		if (isBlocked(row, col)) {
+			Tile replacedTile = getTileAt(row, col);
+			byte type = replacedTile.type();
+			type *= -1;
+			setTileAt(row, col, --type, (byte) -1);
+			// about "--type": 	shifting by 1 allows us to destroy tiles of type 0 by storing them as -1;
+			// 					this is undone in the render method once a destroyed tile is detected (negative value)
+			//					by adding another "type++" before flipping the sign of the byte to recover the tile type
+//			Logger.log("Destroyed tile (" + row + "," + col + ")");
+		}
 	}
 
 	/**
@@ -329,6 +347,12 @@ public class TileMap {
 //			return;
 //		}
 
+		// get the chunk
+		Chunk currentChunk = screenChunks[r][c];
+
+		// if this chunk is null (happens when the right or bottom edge of a map is reached), skip rendering
+		if (currentChunk == null) return;
+
 
 		// get chunk rendering offsets
 		// GET THE STARTING SCREEN TILE POSITIONS
@@ -352,8 +376,8 @@ public class TileMap {
 		}
 
 
-		// get the chunk
-		Chunk currentChunk = screenChunks[r][c];
+
+
 		// get starting offsets for this chunk
 		int startRow = r == 0 ? tileRowOffset : 0; // offsets only apply to chunk row 0 and col 0
 		int startCol = c == 0 ? tileColOffset : 0; // all other chunks render in full (or until screen tile limit is met)
@@ -379,6 +403,10 @@ public class TileMap {
 		// an iterator, since screenColStart is how we return to the beginning each new row
 		int screenRow, screenCol;
 
+		// get absolute chunk position
+		int chunkRow = currentChunk.getAbsoluteRow();
+		int chunkCol = currentChunk.getAbsoluteCol();
+
 		// render all visible tiles in the chunk
 		screenRow = screenRowStart;
 		for (int row = startRow; row < chunkSize && screenRow < rowsToDraw; row++, screenRow++) {
@@ -392,16 +420,28 @@ public class TileMap {
 				Tile tileToRender = currentChunk.getTileAt(row, col);
 //				if (r > 0 && row == 0 && col == 0) Logger.log("First tile of Chunk[1][x] is " + tileToRender);
 				// render it only if its type indicates it would be visible (not -1)
-				if (tileToRender.type() != -1) {
+				if (chunkRow > 0 || row > 7) { // don't render tiles that don't exist
+					// determine which screen element to modify
+					TileElement tileElement = screenTiles[screenRow][screenCol];
+					// determine whether to use the destroyed atlas or normal one
+					byte renderType = tileToRender.type();
+					if (renderType < 0) {
+						tileElement.setRenderingAtlas(TileElement.AtlasType.DESTROYED);
+						renderType++; // shift back
+						renderType *= -1;
+					}
+					else tileElement.setRenderingAtlas(TileElement.AtlasType.NORMAL);
 					// get position to render this tile at
 					float tileX = x + (col * Tile.SIZE) + ((c + chunkColOffset) * CHUNK_SIZE_PIXELS);
 					float tileY = y + (row * Tile.SIZE) + ((r + chunkRowOffset) * CHUNK_SIZE_PIXELS);
-					TileElement tileElement = screenTiles[screenRow][screenCol];
 //					byte debugContents = (byte) (tileRenderRow * 8 + tileRenderCol);
-					tileElement.setTypeAndContents(tileToRender.type(), tileToRender.contents());
+					tileElement.setTypeAndContents(renderType, tileToRender.contents());
+
+					if (tileToRender.contents() != -1) Logger.log("Tile with contents " + tileToRender.contents() + " on screen");
+
 					tileElement.setPosition(tileX, tileY);
 					tileElement.transform();
-					Render.drawTile(tileElement);
+					tileElement.render();
 				}
 			}
 		}
@@ -485,7 +525,7 @@ public class TileMap {
 
 	private void loadChunksRight() {
 		// CHECK: only load right if chunks exist in that direction!
-		if (chunkColOffset >= totalChunksX - 1) return;
+//		if (chunkColOffset >= totalChunksX - 1) return;
 		Logger.log("loadChunksRight()");
 		// Step 1: move screen chunks left, discarding leftmost column
 		for (int c = 0; c < screenChunks[0].length - 1; c++) {
@@ -501,7 +541,7 @@ public class TileMap {
 			try {
 				screenChunks[r][col] = chunks.getChunkAt(chunkRow, chunkCol);
 			} catch (IOException e) {
-
+				screenChunks[r][col] = null;
 				Logger.log("Chunks to be loaded were out of range -- end of map reached in X direction");
 			}
 		}
@@ -525,6 +565,16 @@ public class TileMap {
 	private void loadChunksDownRight() {
 		loadChunksDown();
 		loadChunksRight();
+	}
+
+	// SAVING TO FILE
+	public void saveMapToDisk() {
+		try {
+			saveSuccess = chunks.saveMapToDisk();
+		} catch (IOException e) {
+			saveSuccess = false;
+			e.printStackTrace();
+		}
 	}
 
 }

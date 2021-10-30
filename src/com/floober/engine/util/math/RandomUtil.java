@@ -71,6 +71,20 @@ public class RandomUtil {
 		return randNegate(getFloat(max));
 	}
 
+	// ********** DOUBLES **********
+	public static double getDouble() {
+		return random.nextDouble();
+	}
+
+	public static double getDouble(double max) {
+		return random.nextDouble() * max;
+	}
+
+	public static double getDouble(double min, double max) {
+		double delta = max - min;
+		return min + (random.nextDouble() * delta);
+	}
+
 	/**
 	 * Get a random int from 0 to {@code max}.
 	 * @param max The upper bound.

@@ -3,10 +3,13 @@ package com.floober.miner.tilemap;
 public record Tile(byte type, byte contents) {
 
 	public static final int SIZE = 64;
-	public static final int BLOCKED = 8;
 
 	public boolean isBlocked() {
-		return type >= BLOCKED;
+		return type >= 0;
+	}
+
+	public int getHardness() {
+		return Math.max(type / 8, 1);
 	}
 
 	@Override

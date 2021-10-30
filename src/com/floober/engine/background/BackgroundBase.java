@@ -57,7 +57,7 @@ public class BackgroundBase {
 		for (int i = 0; i < yCount; ++i) {
 			for (int j = 0; j < xCount; ++j) {
 				updateTextureElement(x + j * textureElement.getWidth(), y + i * textureElement.getHeight(), textureElement.getWidth(), textureElement.getHeight());
-				Render.drawImage(new TextureElement(textureElement));
+				new TextureElement(textureElement).render();
 			}
 		}
 	}

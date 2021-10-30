@@ -118,11 +118,6 @@ public class TextureElement extends RenderElement {
 		transform();
 	}
 
-	// RENDERING
-	public void render() {
-		Render.drawImage(this);
-	}
-
 	// GETTERS
 	public TextureComponent getTextureComponent() {
 		return textureComponent;

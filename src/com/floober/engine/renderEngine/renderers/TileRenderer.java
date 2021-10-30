@@ -109,6 +109,8 @@ public class TileRenderer {
 
 		// for each element in this batch, add its data to the vbo array
 		for (TileElement element : elementList) {
+			// if element has overlay, skip it, add it to overlayTileElements, and increment numOverlayElements
+			// otherwise just add its data to the standard tile vbo
 			updateElementData(element, vboData);
 		}
 
@@ -119,7 +121,7 @@ public class TileRenderer {
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, quad.vertexCount(), elementList.size() - numOverlayElements);
 
 		// render all overlay tile elements
-		renderOverlayElements(overlayTileElements);
+//		renderOverlayElements(overlayTileElements);
 	}
 
 	private void renderOverlayElements(HashMap<Texture, List<TileElement>> overlayElements) {

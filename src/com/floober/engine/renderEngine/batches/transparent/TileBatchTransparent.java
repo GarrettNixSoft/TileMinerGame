@@ -23,7 +23,7 @@ public class TileBatchTransparent extends TransparentBatch {
 
 	public void addElement(TileElement element) {
 		if (element.hasTransparency()) {
-			List<TileElement> elementList = elements.computeIfAbsent(element.getTypeAtlas(), k -> new ArrayList<>());
+			List<TileElement> elementList = elements.computeIfAbsent(element.getRenderAtlas(), k -> new ArrayList<>());
 			elementList.add(element);
 		}
 		else {

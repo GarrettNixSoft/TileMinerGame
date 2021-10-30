@@ -33,14 +33,14 @@ public class VerticalLoopAnimation extends Animation {
 
 	public void render(float x, float y, int layer, float w, float h, float alpha) {
 		updateTextureElement(x, y + yOffset, layer, w, h, alpha);
-		Render.drawImage(new TextureElement(textureElement));
+		new TextureElement(textureElement).render();
 		if (moveSpeed > 0) { // moving down, loop above
 			updateTextureElement(x, y + yOffset - loopHeight, layer, w, h, alpha);
 		}
 		else { // moving up, loop below
 			updateTextureElement(x, y + yOffset + loopHeight, layer, w, h, alpha);
 		}
-		Render.drawImage(new TextureElement(textureElement));
+		new TextureElement(textureElement).render();
 	}
 
 	private void updateTextureElement(float x, float y, int layer, float width, float height, float alpha) {

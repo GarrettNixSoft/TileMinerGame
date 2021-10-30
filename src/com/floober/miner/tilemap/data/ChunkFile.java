@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class ChunkFile {
@@ -33,11 +34,34 @@ public class ChunkFile {
 	private final List<Chunk> chunkCache;
 	private final int CHUNK_CACHE_SIZE = 100;
 
+	// remember which chunks have been moodified since last save
+	private final List<Chunk> modifiedChunks;
+
 	public ChunkFile(String fileName) {
 		this.fileName = FileUtil.GAME_DIR + FileUtil.SEPARATOR + "maps" + FileUtil.SEPARATOR + fileName;
 		readMetaData(this.fileName);
 		chunkFileCache = new ArrayList<>(FILE_CACHE_SIZE);
 		chunkCache = new ArrayList<>(CHUNK_CACHE_SIZE);
+		modifiedChunks = new ArrayList<>();
+	}
+
+	public static boolean exists(String mapName) {
+		String mapDirectoryName = FileUtil.generateFilePath("maps") + mapName;
+		File mapFile;
+		if ((mapFile = new File(mapDirectoryName)).exists()) {
+			Logger.log("ChunkFile.exists(): Found a potential match! Validating...");
+			File[] dirFiles = mapFile.listFiles();
+			if (dirFiles == null) return false;
+			boolean hasMetadata = false;
+			boolean hasChunk = false;
+			for (File file : dirFiles) {
+				if (file.getName().endsWith(".json")) hasMetadata = true;
+				else if (file.getName().endsWith(".chunk")) hasChunk = true;
+			}
+			Logger.log("Validation success: " + (hasMetadata && hasChunk));
+			return hasMetadata && hasChunk;
+		}
+		else return false;
 	}
 
 	private void readMetaData(String fileName) {
@@ -62,24 +86,24 @@ public class ChunkFile {
 	}
 
 	public Chunk getChunkAt(int r, int c) throws IllegalArgumentException, IOException {
-		Logger.log("[ChunkFile] Loading chunk [" + r + ", " + c + "]");
+//		Logger.log("[ChunkFile] Loading chunk [" + r + ", " + c + "]");
 		// validate location
 		if (c > numChunksX) throw new IllegalArgumentException("Requested Chunk out of bounds! Num rows: " + numChunksX + "; Requested: " + c);
 		if (r > numChunksY) throw new IllegalArgumentException("Requested Chunk out of bounds! Num rows: " + numChunksY + "; Requested: " + r);
 		// FIRST: check if this chunk is cached!
 		Chunk chunkCacheCheck = tryRetrieveFromChunkCache(r, c);
 		if (chunkCacheCheck != null) {
-			Logger.log("Successful retrieval of chunk from CHUNK_CACHE");
+//			Logger.log("Successful retrieval of chunk from CHUNK_CACHE");
 			return chunkCacheCheck;
 		}
 		// file cache flag (disables debug image generation)
 		boolean fromCache = false;
 		// determine which file to load
 		int fileChunkSquareSize = (int) Math.sqrt(chunksPerFile);
-		Logger.log("chunksPerFile = " + chunksPerFile + ", fileChunkSquareSize = " + fileChunkSquareSize);
+//		Logger.log("chunksPerFile = " + chunksPerFile + ", fileChunkSquareSize = " + fileChunkSquareSize);
 		int fileRow = r / fileChunkSquareSize;
 		int fileCol = c / fileChunkSquareSize;
-		Logger.log("Chunk[" + r + "][" + c + "] is in file Cr" + fileRow + "c" + fileCol + ".chunk");
+//		Logger.log("Chunk[" + r + "][" + c + "] is in file Cr" + fileRow + "c" + fileCol + ".chunk");
 		String chunkFileID = "Cr" + fileRow + "c" + fileCol;
 		ChunkDataFile chunkDataFile;
 		// FIRST: CHECK IF IT'S IN THE CACHE!
@@ -87,7 +111,7 @@ public class ChunkFile {
 		if (fileCacheCheck != null) {
 			// if it is, skip the file loading!
 			chunkDataFile = fileCacheCheck;
-			Logger.log("Successful retrieval of chunk file from CHUNK_FILE_CACHE");
+//			Logger.log("Successful retrieval of chunk file from CHUNK_FILE_CACHE");
 			fromCache = true;
 		}
 		else {
@@ -122,7 +146,7 @@ public class ChunkFile {
 		int chunkPosition = chunkRow * fileChunkSquareSize + chunkCol;
 //		chunkPosition /= 2;
 		bytePointer += chunkPosition * bytesPerChunk;
-		Logger.log("Chunk[" + r + "][" + c + "] calculated to be position " + chunkPosition + " and therefore should begin at byte #" + bytePointer);
+//		Logger.log("Chunk[" + r + "][" + c + "] calculated to be position " + chunkPosition + " and therefore should begin at byte #" + bytePointer);
 		// create the tiles based on the data
 		Tile[][] tiles = new Tile[chunkSize][chunkSize];
 		for (int row = 0; row < tiles.length; row++) {
@@ -140,7 +164,7 @@ public class ChunkFile {
 		// cache it
 		cacheChunk(result);
 		// debug
-		Logger.log("This chunk starts with tile: " + result.getTileAt(0,0));
+//		Logger.log("This chunk starts with tile: " + result.getTileAt(0,0));
 		ChunkImageGenerator.generateChunkImage(result, result.id() + "_loaded");
 		// return it
 		return result;
@@ -219,40 +243,46 @@ public class ChunkFile {
 		return null;
 	}
 
-	public static void writeChunksToFile(String mapDirectoryName, Chunk[][] chunks, byte chunkSize, byte chunksPerFile, int r, int c) throws IOException {
-		String chunkFileName = mapDirectoryName + FileUtil.SEPARATOR + "Cr" + r + "c" + c + ".chunk";
+	public static void writeChunksToFile(String mapDirectoryName, Chunk[][] chunks, byte chunkSize, byte chunksPerFile, int fileRow, int fileCol) throws IOException {
+		Logger.log("Saving chunk file -- File position is R" + fileRow + ",C" + fileCol + "; chunks array is " + chunks.length + "x" + chunks[0].length);
+		String chunkFileName = mapDirectoryName + FileUtil.SEPARATOR + "Cr" + fileRow + "c" + fileCol + ".chunk";
 		File chunkFile = new File(chunkFileName);
-		if (!chunkFile.exists() && !chunkFile.createNewFile()) {
-			throw new IOException("Could not create chunk file on disk");
-		}
-		else {
-			r = r << 1;
-			c = c << 1;
-			Logger.log("Writing chunks to chunk files!");
-			// create the stream to write bytes to
-			FileOutputStream stream = new FileOutputStream(chunkFile);
-			// calculate how many bytes we need to store, and create an array to store them
-			int totalBytes = chunksPerFile * chunks[0][0].getNumTiles() * 2 + 2;
-//			Logger.log("Total bytes needed for chunk file: " + totalBytes);
-			byte[] fileBytes = new byte[totalBytes];
-			// store all bytes
-			fileBytes[0] = chunksPerFile;
-			fileBytes[1] = chunkSize;
-			int bytePointer = 2;
-			int chunkSide = (int) Math.sqrt(chunksPerFile);
-//			Logger.log("Writing " + (chunkSide * chunkSide) + " chunks");
-			for (int row = r; row < r + chunkSide; row++) {
-				for (int col = c; col < c + chunkSide; col++) {
-					Logger.log("Writing chunk " + chunks[row][col] + " to byte array");
-					bytePointer = writeTilesToByteArray(fileBytes, chunks[row][col].tiles(), bytePointer);
-				}
+		try {
+			if (!chunkFile.exists() && !chunkFile.createNewFile()) {
+				throw new IOException("Could not create chunk file on disk -- " + chunkFile.getPath());
 			}
-			// write all bytes to the file
-			stream.write(fileBytes, 0, fileBytes.length);
-			stream.flush();
-			// close the stream
-			stream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new IOException("Could not create chunk file on disk -- " + chunkFile.getPath());
 		}
+//		r = r << 1;
+//		c = c << 1;
+//			Logger.log("Writing chunks to chunk files!");
+		// create the stream to write bytes to
+		FileOutputStream stream = new FileOutputStream(chunkFile);
+		// calculate how many bytes we need to store, and create an array to store them
+		int totalBytes = chunksPerFile * chunks[0][0].getNumTiles() * 2 + 2;
+//			Logger.log("Total bytes needed for chunk file: " + totalBytes);
+		byte[] fileBytes = new byte[totalBytes];
+		// store all bytes
+		fileBytes[0] = chunksPerFile;
+		fileBytes[1] = chunkSize;
+		int bytePointer = 2;
+		int chunkSide = (int) Math.sqrt(chunksPerFile);
+//			Logger.log("Writing " + (chunkSide * chunkSide) + " chunks");
+		for (int row = 0; row < chunkSide; row++) {
+			for (int col = 0; col < chunkSide; col++) {
+//				int chunkRow = fileRow * chunkSide + row;
+//				int chunkCol = fileCol * chunkSide + col;
+				Logger.log("Writing chunk " + chunks[row][col] + " to byte array");
+				bytePointer = writeTilesToByteArray(fileBytes, chunks[row][col].tiles(), bytePointer);
+			}
+		}
+		// write all bytes to the file
+		stream.write(fileBytes, 0, fileBytes.length);
+		stream.flush();
+		// close the stream
+		stream.close();
 	}
 
 	private static int writeTilesToByteArray(byte[] bytes, Tile[][] tiles, int pointer) {
@@ -264,6 +294,60 @@ public class ChunkFile {
 			}
 		}
 		return pointer;
+	}
+
+	public void setModified(Chunk chunk) {
+		if (!modifiedChunks.contains(chunk)) modifiedChunks.add(chunk);
+	}
+
+	public boolean saveMapToDisk() throws IOException {
+
+		// calculate side length of each file
+		int fileChunkSquareSize = (int) Math.sqrt(chunksPerFile);
+
+		// generate a hashMap of all chunks files that will need to be saved
+		HashMap<String, Pair<Integer, Integer>> modifiedFiles = new HashMap<>();
+
+		// for every modified chunk, put it into the hashMap
+		for (Chunk chunk : modifiedChunks) {
+
+			// get the world position of the chunk
+			int row = chunk.getAbsoluteRow();
+			int col = chunk.getAbsoluteCol();
+
+			// determine which file it's in
+
+			int fileRow = row / fileChunkSquareSize;
+			int fileCol = col / fileChunkSquareSize;
+
+			// generate that string
+			String fileString = "Cr" + fileRow + "c" + fileCol;
+
+			// if absent, add the string to the list
+			modifiedFiles.computeIfAbsent(fileString, n -> new Pair<>(fileRow, fileCol));
+
+		}
+
+		for (String file : modifiedFiles.keySet()) {
+
+			Pair<Integer, Integer> filePosition = modifiedFiles.get(file);
+			int fileRow = filePosition.data1();
+			int fileCol = filePosition.data2();
+
+			Chunk[][] chunksToWrite = new Chunk[fileChunkSquareSize][fileChunkSquareSize];
+
+			for (int r = 0; r < chunksToWrite.length; r++) {
+				for (int c = 0; c < chunksToWrite[r].length; c++) {
+					chunksToWrite[r][c] = getChunkAt(fileRow * fileChunkSquareSize + r, fileCol * fileChunkSquareSize + c);
+				}
+			}
+
+//			String mapDirectoryName = FileUtil.generateFilePath("maps") + fileName;
+			writeChunksToFile(fileName, chunksToWrite, chunkSize, chunksPerFile, fileRow, fileCol);
+
+		}
+
+		return true;
 	}
 
 //	public void saveChunkAt(int r, int c) throws IOException {

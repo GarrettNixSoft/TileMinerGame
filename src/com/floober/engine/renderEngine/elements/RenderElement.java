@@ -1,6 +1,8 @@
 package com.floober.engine.renderEngine.elements;
 
 import com.floober.engine.display.Display;
+import com.floober.engine.renderEngine.Render;
+import com.floober.engine.renderEngine.elements.geometry.*;
 import com.floober.engine.renderEngine.framebuffers.FrameBuffer;
 import com.floober.engine.renderEngine.framebuffers.FrameBuffers;
 import com.floober.engine.renderEngine.renderers.MasterRenderer;
@@ -36,6 +38,23 @@ public abstract class RenderElement implements Comparable<RenderElement> {
 		// TEST
 		scale = new Vector2f(width, height);
 		// END_TEST
+	}
+
+	/**
+	 * Render this RenderElement. Uses the new Java 17 preview feature, Pattern Matching for switch,
+	 * to call the appropriate Render method for whatever type this RenderElement is.
+	 */
+	public void render() {
+		switch (this) {
+			case LineElement l -> Render.drawLine(l);
+			case CircleElement c -> Render.drawCircle(c);
+			case OutlineElement o -> Render.drawOutline(o);
+			case RectElementLight rl -> Render.drawLightRect(rl);
+			case RectElement r -> Render.drawRect(r);
+			case TileElement tile -> Render.drawTile(tile);
+			case TextureElement tex -> Render.drawImage(tex);
+			default -> throw new IllegalStateException("Unexpected value: " + this);
+		}
 	}
 
 	/**

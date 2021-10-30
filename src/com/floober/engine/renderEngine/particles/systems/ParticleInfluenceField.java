@@ -44,23 +44,23 @@ public class ParticleInfluenceField {
 	public void render() {
 		// show the bounds of this field
 		OutlineElement outline = new OutlineElement(Colors.GREEN, bounds, 0, 2, false);
-		Render.drawOutline(outline);
+		outline.render();
 		// Crosshairs to center
 		LineElement horizCross = new LineElement(Colors.GREEN, bounds.x, bounds.y + (bounds.w - bounds.y) / 2,
 				bounds.z, bounds.y + (bounds.w - bounds.y) / 2, 0, 2);
 		LineElement vertiCross = new LineElement(Colors.GREEN, bounds.x + (bounds.z - bounds.x) / 2,
 				bounds.y, bounds.x + (bounds.z - bounds.x) / 2, bounds.w, 0, 2);
-		Render.drawLine(horizCross);
-		Render.drawLine(vertiCross);
+		horizCross.render();
+		vertiCross.render();
 		// show the influence direction
 		Vector2f polar = MathUtil.getPolar(force);
 		CircleElement circle = new CircleElement(Colors.RED, bounds.x + (bounds.z - bounds.x) / 2, bounds.y + (bounds.w - bounds.y) / 2,
 				0, polar.x * 0.9f, polar.x, polar.y / -360f + 0.5f, -90);
-		Render.drawCircle(circle);
+		circle.render();
 		// show the remaining life
 		CircleElement lifeCircle = new CircleElement(Colors.CYAN, bounds.x + (bounds.z - bounds.x) / 2, bounds.y + (bounds.w - bounds.y) / 2,
 				0, polar.x * 0.4f, polar.x * 0.5f, 1 - life.getProgress(), 0);
-		Render.drawCircle(lifeCircle);
+		lifeCircle.render();
 	}
 
 }

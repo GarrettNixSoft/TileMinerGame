@@ -169,6 +169,28 @@ public class Game {
 	 * Fade the currently playing music to a new volume level. The
 	 * new level can be higher or lower than the current volume, within
 	 * the range of [0, 1].
+	 * @param target the new target volume
+	 * @param time the duration during which to perform the transition
+	 */
+	public static void fadeMusic(float target, float time) {
+		instance.music.fadeMusic(target, time);
+	}
+
+	/**
+	 * Set the volume of the current music channel to zero, then fade
+	 * in a new music track to a new volume level. The new level can
+	 * be higher or lower than the current volume, within the range of [0, 1].
+	 * @param target the new target volume
+	 * @param time the duration during which to perform the transition
+	 */
+	public static void fadeMusicFromZero(float target, float time) {
+		instance.music.fadeMusicFromZero(target, time);
+	}
+
+	/**
+	 * Fade the music playing on a specified channel to a new volume level. The
+	 * new level can be higher or lower than the current volume, within
+	 * the range of [0, 1].
 	 * @param channel the desired channel to fade
 	 * @param target the new target volume
 	 * @param time the duration during which to perform the transition

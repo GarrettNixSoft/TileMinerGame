@@ -2,6 +2,8 @@ package com.floober.engine.util.input;
 
 import com.floober.engine.display.GameWindow;
 
+import java.util.Arrays;
+
 import static org.lwjgl.glfw.GLFW.*;
 
 public class KeyInput {
@@ -174,5 +176,17 @@ public class KeyInput {
 	// CHECK FOR HOLDING CONTROL
 	public static boolean isCtrl() {
 		return keyState[LCONTROL] || keyState[RCONTROL];
+	}
+
+	// Flushing input arrays; fixes sticking keys with certain events
+	public static void forceClear() {
+		// set all keys currently off; prevents isHeld() returning true
+		Arrays.fill(keyState, false);
+		// set all keys previously on; prevents isPressed() returning true
+		Arrays.fill(prevKeyState, true);
+	}
+
+	public static void force(int key, boolean state) {
+		keyState[key] = state;
 	}
 }

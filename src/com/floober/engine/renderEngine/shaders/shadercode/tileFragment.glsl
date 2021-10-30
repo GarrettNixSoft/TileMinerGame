@@ -80,6 +80,10 @@ void main(void) {
 		float source = contentsColor.a;
 		float destination = 1 - source;
 		out_color = contentsColor * source + out_color * destination;
+
+		// TEST
+		out_color = vec4(1);
+		// END_TEST
 	}
 
 	// finally, use light value to get result

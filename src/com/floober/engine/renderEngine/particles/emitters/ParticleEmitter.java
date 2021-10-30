@@ -239,12 +239,12 @@ public class ParticleEmitter {
 			OutlineElement bounds = new OutlineElement(particleBehavior.getAppearanceBehavior().getParticleColor(),
 										position.x, position.y, (int) position.z, positionDeltaMax * 2,
 									positionDeltaVerticalMax * 2, 2, true);
-			Render.drawOutline(bounds);
+			bounds.render();
 		}
 		else {
 			CircleElement bounds = new CircleElement(particleBehavior.getAppearanceBehavior().getParticleColor(),
 										position.x, position.y, (int) position.z, positionDeltaMax - 2, positionDeltaMax);
-			Render.drawCircle(bounds);
+			bounds.render();
 		}
 	}
 

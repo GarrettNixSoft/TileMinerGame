@@ -18,7 +18,9 @@ public class Music {
 	private final AudioChannel[] CHANNELS;
 	public static final int NUM_CHANNELS = 4;
 	public static final int MAIN_TRACK = 0;
-	private int currentMusicChannel;
+	private int currentMusicChannel = -1;
+
+//	private int lastTrackPlayed = -1;
 
 	// Constructor initializes channel sources
 	public Music() {
@@ -205,6 +207,7 @@ public class Music {
 			fadeMusic(currentMusicChannel, 0, time);
 			setVolume(channel, 0, 0);
 			playMusic(key, channel);
+			fadeMusic(channel, Settings.musicVolume, time);
 			currentMusicChannel = channel;
 			return true;
 		}
@@ -294,6 +297,21 @@ public class Music {
 		else {
 			CHANNELS[channel].tweenPitch(pitch, time);
 		}
+	}
+
+	public void fadeMusic(float target, float time) {
+		if (currentMusicChannel != -1) {
+			CHANNELS[currentMusicChannel].tweenVolume(target, time);
+		}
+		else throw new IllegalStateException("No music played yet; cannot fade");
+	}
+
+	public void fadeMusicFromZero(float target, float time) {
+		if (currentMusicChannel != -1) {
+			CHANNELS[currentMusicChannel].setVolume(0);
+			CHANNELS[currentMusicChannel].tweenVolume(target, time);
+		}
+		else throw new IllegalStateException("No music played yet; cannot fade");
 	}
 
 	public void fadeMusic(int channel, float target, float time) {

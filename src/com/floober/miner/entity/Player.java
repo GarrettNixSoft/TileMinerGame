@@ -13,10 +13,11 @@ import com.floober.miner.tilemap.TileMap;
 public class Player extends TileEntity {
 
 	private final float DEFAULT_SPEED = Tile.SIZE * 2;
+	private float SPEED_MULTIPLIER = 4;
 	private final float BOOST_MULTIPLIER = 2;
 	private final float DIG_MULTIPLIER = 0.4f;
 
-	private final float centerRange = 2f;
+	private final float centerRange = 1f;
 
 	// map movement
 	private boolean drilling;
@@ -66,15 +67,34 @@ public class Player extends TileEntity {
 			int centerCol = colTarget * Tile.SIZE + Tile.SIZE / 2;
 			// check finished
 			if (currCol == colTarget) {
-				// get distance from the center of this tile
-				float distance = Math.abs(centerCol - x);
-				// if it's within the specified range, snap to center and stop drilling
-				if (distance < centerRange) {
-					x = centerCol;
-					drilling = false;
-					left = right = false;
-					tileMap.destroyTileAt(currRow, currCol);
+				if (right) {
+					if (x >= centerCol) {
+						x = centerCol;
+						drilling = false;
+						right = false;
+						dx = 0;
+						tileMap.destroyTileAt(currRow, currCol);
+					}
 				}
+				else {
+					if (x <= centerCol) {
+						x = centerCol;
+						drilling = false;
+						left = false;
+						dx = 0;
+						tileMap.destroyTileAt(currRow, currCol);
+					}
+				}
+//				// get distance from the center of this tile
+//				float distance = Math.abs(centerCol - x);
+//				// if it's within the specified range, snap to center and stop drilling
+//				if (distance < centerRange * SPEED_MULTIPLIER) {
+//					x = centerCol;
+//					drilling = false;
+//					left = right = false;
+//					dx = 0;
+//					tileMap.destroyTileAt(currRow, currCol);
+//				}
 			}
 		}
 		else if (up || down) {
@@ -84,15 +104,34 @@ public class Player extends TileEntity {
 			int centerRow = rowTarget * Tile.SIZE + Tile.SIZE / 2;
 			// check finished
 			if (currRow == rowTarget) {
-				// get distance from the center of this tile
-				float distance = Math.abs(centerRow - y);
-				// if it's within the specified range, snap to center and stop drilling
-				if (distance < centerRange) {
-					y = centerRow;
-					drilling = false;
-					up = down = false;
-					tileMap.destroyTileAt(currRow, currCol);
+				if (up) {
+					if (y < centerRow) {
+						y = centerRow;
+						drilling = false;
+						up = false;
+						dy = 0;
+						tileMap.destroyTileAt(currRow, currCol);
+					}
 				}
+				else {
+					if (y > centerRow) {
+						y = centerRow;
+						drilling = false;
+						down = false;
+						dy = 0;
+						tileMap.destroyTileAt(currRow, currCol);
+					}
+				}
+//				// get distance from the center of this tile
+//				float distance = Math.abs(centerRow - y);
+//				// if it's within the specified range, snap to center and stop drilling
+//				if (distance < centerRange * SPEED_MULTIPLIER) {
+//					y = centerRow;
+//					drilling = false;
+//					up = down = false;
+//					dy = 0;
+//					tileMap.destroyTileAt(currRow, currCol);
+//				}
 			}
 		}
 	}
@@ -104,12 +143,6 @@ public class Player extends TileEntity {
 
 		// if no inputs, return
 		if (!(up || down || left || right)) return;
-
-		// apply directions to speed
-		if (left) dx = -moveSpeed;
-		else if (right) dx = moveSpeed;
-		if (up) dy = -moveSpeed;
-		else if (down) dy = moveSpeed;
 
 		// get current tile position
 		int currCol = (int) x / Tile.SIZE;
@@ -168,12 +201,19 @@ public class Player extends TileEntity {
 
 		}
 
-		boolean blocked = tileMap.isBlocked(rowTarget, colTarget);
+		Tile targetTile = tileMap.getTileAt(rowTarget, colTarget);
+		boolean blocked = targetTile.isBlocked();
 
 		if (blocked) {
-			// apply dig multiplier
-			moveSpeed *= DIG_MULTIPLIER;
+			// apply dig multiplier; dig multiplier is increased exponentially for every level of hardness of the target tile
+			moveSpeed *= Math.pow(DIG_MULTIPLIER, targetTile.getHardness());
 		}
+
+		// apply directions to speed
+		if (left) dx = -moveSpeed;
+		else if (right) dx = moveSpeed;
+		if (up) dy = -moveSpeed;
+		else if (down) dy = moveSpeed;
 
 		// flag self as drilling
 		drilling = true;
@@ -182,7 +222,7 @@ public class Player extends TileEntity {
 
 	private void checkInputs() {
 		// check boosting
-		moveSpeed = KeyInput.isShift() ? DEFAULT_SPEED * BOOST_MULTIPLIER : DEFAULT_SPEED;
+		moveSpeed = KeyInput.isShift() ? DEFAULT_SPEED * SPEED_MULTIPLIER * BOOST_MULTIPLIER : DEFAULT_SPEED * SPEED_MULTIPLIER;
 
 		// check input directions
 		up = KeyInput.isHeld(KeyInput.W);

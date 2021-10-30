@@ -243,7 +243,7 @@ public class LoadRenderer {
 		Vector4f baseColor = new Vector4f(baseAlpha);
 		if (invertColors) baseColor = Colors.invert(baseColor);
 		baseBar.setColor(baseColor);
-		Render.drawRect(baseBar);
+		baseBar.render();
 		// draw bar
 		Vector4f infoColor = new Vector4f(1 - infoAlpha);
 		float totalWidth = (barWidth * complete) + (barWidth * (portion * progress));
@@ -252,7 +252,7 @@ public class LoadRenderer {
 		Vector4f copy = new Vector4f(infoColor);
 		if (!invertColors) copy.w = 1;
 		progressBar.getColor().set(copy);
-		Render.drawRect(progressBar);
+		progressBar.render();
 		// update particle source position, generate some particles
 		particleSource.setPosition(progressBar.getX() + progressBar.getWidth(), progressBar.getY() + progressBar.getHeight() / 2, 0);
 //		particleSource.update(); // TODO decide if this looks better without the particles (it probably does; less jittery)
@@ -265,7 +265,8 @@ public class LoadRenderer {
 		progressText.update();
 		// draw logo
 		logoElement.setAlpha(invertColors ? 1 - infoAlpha : infoAlpha);
-		Render.drawImage(logoElement);
+//		Render.drawImage(logoElement);
+		logoElement.render();
 		// fade particles
 //		particleSource.getParticleBehavior().setParticleLifeMin(0.1f * (1 - infoAlpha));
 //		particleSource.getParticleBehavior().setParticleLifeMax(1 - infoAlpha);
@@ -273,7 +274,8 @@ public class LoadRenderer {
 		// draw check if possible
 		if (checkAlpha != 0) {
 			checkElement.setAlpha(checkAlpha);
-			Render.drawImage(checkElement);
+//			Render.drawImage(checkElement);
+			checkElement.render();
 		}
 
 		// update the screen

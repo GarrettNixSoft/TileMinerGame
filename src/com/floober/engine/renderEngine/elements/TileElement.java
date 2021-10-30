@@ -5,19 +5,29 @@ import org.joml.Vector4f;
 
 public class TileElement extends TextureElement {
 
+	public enum AtlasType {
+		NORMAL, DESTROYED
+	}
+
 	private final TextureAtlas typeAtlas;
 	private final TextureAtlas contentsAtlas;
+	private final TextureAtlas destroyedAtlas;
+	private AtlasType atlasType;
 	private final Vector4f typeTextureOffsets;
 	private final Vector4f contentsTextureOffsets;
 	private boolean hasTransparency;
 	private float type, contents;
 
-	public TileElement(TextureAtlas typeAtlas, TextureAtlas contentsAtlas, byte type, byte contents, float x, float y, int layer, int tileSize) {
+	public TileElement(TextureAtlas typeAtlas, TextureAtlas contentsAtlas, TextureAtlas destroyedAtlas, byte type, byte contents, float x, float y, int layer, int tileSize) {
 		super(null, x, y, layer, tileSize, tileSize, false);
 		if (typeAtlas == null) throw new IllegalArgumentException("typeAtlas is null!");
 		if (contentsAtlas == null) throw new IllegalArgumentException("contentsAtlas is null!");
+		if (destroyedAtlas == null) throw new IllegalArgumentException("destroyedAtlas is null!");
 		this.typeAtlas = typeAtlas;
 		this.contentsAtlas = contentsAtlas;
+		this.destroyedAtlas = destroyedAtlas;
+		// use the normal atlas by default
+		atlasType = AtlasType.NORMAL;
 		typeTextureOffsets = new Vector4f();
 		contentsTextureOffsets = new Vector4f();
 		setTypeAndContents(type, contents);
@@ -42,9 +52,18 @@ public class TileElement extends TextureElement {
 		setTextureOffset(contentsTextureOffsets, contents);
 	}
 
+	public void setRenderingAtlas(AtlasType atlasType) {
+		this.atlasType = atlasType;
+	}
+
 	// GETTERS
-	public TextureAtlas getTypeAtlas() {
-		return typeAtlas;
+
+	/**
+	 * Get the atlas this tile should use to render.
+	 * @return the atlas to use when rendering this tile
+	 */
+	public TextureAtlas getRenderAtlas() {
+		return atlasType == AtlasType.NORMAL ? typeAtlas : destroyedAtlas;
 	}
 
 	public TextureAtlas getContentsAtlas() {

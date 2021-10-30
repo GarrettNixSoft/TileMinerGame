@@ -36,6 +36,16 @@ public record Chunk(String id, Tile[][] tiles) {
 		return "Cr" + r + "c" + c;
 	}
 
+	public int getAbsoluteRow() {
+		String rowSubstring = id.substring(2, id.indexOf('c'));
+		return Integer.parseInt(rowSubstring);
+	}
+
+	public int getAbsoluteCol() {
+		String colSubstring = id.substring(id.indexOf('c') + 1);
+		return Integer.parseInt(colSubstring);
+	}
+
 	@Override
 	public String toString() {
 		String rowSubstring = id.substring(2, id.indexOf('c'));
