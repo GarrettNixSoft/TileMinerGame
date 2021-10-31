@@ -13,6 +13,7 @@ import com.floober.engine.util.Logger;
 import com.floober.engine.util.conversion.Converter;
 import com.floober.engine.util.math.MathUtil;
 import com.floober.engine.util.math.MatrixUtils;
+import com.floober.miner.tilemap.Tile;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
@@ -33,7 +34,7 @@ public class TileRenderer {
 
 	private static final float[] positions = {-1, 1, -1, -1, 1, 1, 1, -1};
 	private static final int MAX_INSTANCES = 10000; // Up to 10000 tiles on screen at once
-	private static final int INSTANCE_DATA_LENGTH = 58;
+	private static final int INSTANCE_DATA_LENGTH = 59;
 	// TYPE_TRANSFORMATION_MATRIX (16), TYPE_TEX_COORDS (4), CONTENTS_TRANSFORMATION_MATRIX (16), CONTENTS_TEX_COORDS (4),
 	//  DO_COLOR_SWAP (1), R_CHANNEL_COLOR (4), G_CHANNEL_COLOR (4), B_CHANNEL_COLOR (4), A_CHANNEL_COLOR (4)
 
@@ -64,11 +65,11 @@ public class TileRenderer {
 		ModelLoader.addInstancedAttribute(vaoID, vbo, 8, 4, INSTANCE_DATA_LENGTH, 28); // Contents transform col 3
 		ModelLoader.addInstancedAttribute(vaoID, vbo, 9, 4, INSTANCE_DATA_LENGTH, 32); // Contents transform col 4
 		ModelLoader.addInstancedAttribute(vaoID, vbo, 10, 4, INSTANCE_DATA_LENGTH, 36); // Contents tex coords
-		ModelLoader.addInstancedAttribute(vaoID, vbo, 11, 2, INSTANCE_DATA_LENGTH, 40); // Modifiers: doColorSwap, hasContents
-		ModelLoader.addInstancedAttribute(vaoID, vbo, 12, 4, INSTANCE_DATA_LENGTH, 41); // R channel color
-		ModelLoader.addInstancedAttribute(vaoID, vbo, 13, 4, INSTANCE_DATA_LENGTH, 45); // G channel color
-		ModelLoader.addInstancedAttribute(vaoID, vbo, 14, 4, INSTANCE_DATA_LENGTH, 49); // B channel color
-		ModelLoader.addInstancedAttribute(vaoID, vbo, 15, 4, INSTANCE_DATA_LENGTH, 53); // A channel color
+		ModelLoader.addInstancedAttribute(vaoID, vbo, 11, 3, INSTANCE_DATA_LENGTH, 40); // Modifiers: doColorSwap, hasContents, depth
+		ModelLoader.addInstancedAttribute(vaoID, vbo, 12, 4, INSTANCE_DATA_LENGTH, 43); // R channel color
+		ModelLoader.addInstancedAttribute(vaoID, vbo, 13, 4, INSTANCE_DATA_LENGTH, 47); // G channel color
+		ModelLoader.addInstancedAttribute(vaoID, vbo, 14, 4, INSTANCE_DATA_LENGTH, 51); // B channel color
+		ModelLoader.addInstancedAttribute(vaoID, vbo, 15, 4, INSTANCE_DATA_LENGTH, 55); // A channel color
 	}
 
 	/**
@@ -87,6 +88,9 @@ public class TileRenderer {
 			// get this batch of texture elements
 			List<TileElement> elementList = tileElements.get(textureAtlas);
 
+
+			bindOverlayTexture(elementList.get(0).getContentsAtlas());
+
 			// render this list
 			render(elementList);
 
@@ -99,9 +103,9 @@ public class TileRenderer {
 	private void render(List<TileElement> elementList) {
 		// known: all elements in elementList have the same texture atlas
 
-		// hashmap to store lists elements with unique overlay textures
-		HashMap<Texture, List<TileElement>> overlayTileElements = new HashMap<>();
-		int numOverlayElements = 0;
+//		 hashmap to store lists elements with unique overlay textures
+//		HashMap<Texture, List<TileElement>> overlayTileElements = new HashMap<>();
+//		int numOverlayElements = 0;
 
 		// allocate a float array to store the vbo data, and an index pointer to use when inserting it
 		float[] vboData = new float[elementList.size() * INSTANCE_DATA_LENGTH];
@@ -118,45 +122,45 @@ public class TileRenderer {
 		ModelLoader.updateVBO(vbo, vboData, buffer);
 
 		// render all particles in this batch in one go!
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, quad.vertexCount(), elementList.size() - numOverlayElements);
+		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, quad.vertexCount(), elementList.size()); // - numOverlayElements
 
 		// render all overlay tile elements
 //		renderOverlayElements(overlayTileElements);
 	}
 
-	private void renderOverlayElements(HashMap<Texture, List<TileElement>> overlayElements) {
-
-		prepare(false);
-
-		for (Texture overlayTexture : overlayElements.keySet()) {
-
-			// bind the overlay texture
-			bindOverlayTexture(overlayTexture);
-
-			// get this batch of tiles
-			List<TileElement> tileElementList = overlayElements.get(overlayTexture);
-
-			// render this tile list
-			// allocate a float array to store the vbo data, and an index pointer to use when inserting it
-			float[] vboData = new float[tileElementList.size() * INSTANCE_DATA_LENGTH];
-			pointer = 0;
-
-			// for each element in this batch, add its data to the vbo array
-			for (TileElement element : tileElementList) {
-				updateElementData(element, vboData);
-			}
-
-			// send all the vbo data to the GPU
-			ModelLoader.updateVBO(vbo, vboData, buffer);
-
-			// render all particles in this batch in one go!
-			glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, quad.vertexCount(), tileElementList.size());
-
-		}
-
-		finishRendering();
-
-	}
+//	private void renderOverlayElements(HashMap<Texture, List<TileElement>> overlayElements) {
+//
+//		prepare(false);
+//
+//		for (TextureAtlas overlayTexture : overlayElements.keySet()) {
+//
+//			// bind the overlay texture
+//			bindOverlayTexture(overlayTexture);
+//
+//			// get this batch of tiles
+//			List<TileElement> tileElementList = overlayElements.get(overlayTexture);
+//
+//			// render this tile list
+//			// allocate a float array to store the vbo data, and an index pointer to use when inserting it
+//			float[] vboData = new float[tileElementList.size() * INSTANCE_DATA_LENGTH];
+//			pointer = 0;
+//
+//			// for each element in this batch, add its data to the vbo array
+//			for (TileElement element : tileElementList) {
+//				updateElementData(element, vboData);
+//			}
+//
+//			// send all the vbo data to the GPU
+//			ModelLoader.updateVBO(vbo, vboData, buffer);
+//
+//			// render all particles in this batch in one go!
+//			glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, quad.vertexCount(), tileElementList.size());
+//
+//		}
+//
+//		finishRendering();
+//
+//	}
 
 	/**
 	 * Bind the TextureAtlas that will be used for this Tile batch.
@@ -171,9 +175,9 @@ public class TileRenderer {
 		shader.loadNumRows(textureAtlas.numRows());
 	}
 
-	private void bindOverlayTexture(Texture texture) {
+	private void bindOverlayTexture(TextureAtlas texture) {
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture.id());
+		glBindTexture(GL_TEXTURE_2D, texture.textureID());
 	}
 
 	/**
@@ -183,29 +187,32 @@ public class TileRenderer {
 	 * @param vboData The float array to store the data in.
 	 */
 	private void updateElementData(TileElement element, float[] vboData) {
-		// transformation matrix
+		int pointerCopy = pointer;
+		// transformation matrix (0-15)
 		Matrix4f matrix = MathUtil.createTransformationMatrix(element.getPosition(), element.getScale(), element.getRotation());
 		pointer = MatrixUtils.storeMatrixData(matrix, vboData, pointer);
-		// texture offsets
+		// texture offsets (15-19)
 		Vector4f typeTexOffsets = element.getTypeTextureOffsets();
 		vboData[pointer++] = typeTexOffsets.x;
 		vboData[pointer++] = typeTexOffsets.y;
 		vboData[pointer++] = typeTexOffsets.z;
 		vboData[pointer++] = typeTexOffsets.w;
-		// contents transformation
+		// contents transformation (20-35)
 		Matrix4f contentsMatrix = MathUtil.createTransformationMatrix(element.getPosition(), element.getScale(), element.getRotation());
 		pointer = MatrixUtils.storeMatrixData(contentsMatrix, vboData, pointer);
-		// contents offsets
-		Vector4f contentsTexOffsets = element.getTypeTextureOffsets();
+		// contents offsets (36-39)
+		Vector4f contentsTexOffsets = element.getContentsTextureOffsets();
 		vboData[pointer++] = contentsTexOffsets.x;
 		vboData[pointer++] = contentsTexOffsets.y;
 		vboData[pointer++] = contentsTexOffsets.z;
 		vboData[pointer++] = contentsTexOffsets.w;
-		// color swap
+		// color swap (40)
 		vboData[pointer++] = Converter.booleanToFloat(element.doColorSwap());
-		// has contents
+		// has contents (41)
 		vboData[pointer++] = element.getContents() != -1 ? 1 : 0;
-		// r channel color
+		// depth (42)
+		vboData[pointer++] = element.getDepth();
+;		// r channel color
 		Vector4f rChannelColor = element.getrChannelColor();
 		vboData[pointer++] = rChannelColor.x;
 		vboData[pointer++] = rChannelColor.y;

@@ -47,7 +47,7 @@ public class PlayState extends GameState {
 	public PlayState(Game game, GameStateManager gsm) {
 		super(game, gsm);
 		testBg = new TextureElement(Game.getTexture("test_bg"), Display.centerX(), Display.centerY(), Layers.BOTTOM_LAYER, true);
-//		LightMaster.setAmbientLight(0.5f);
+		LightMaster.setAmbientLight(0);
 		Game.playMusic("track1");
 		Game.fadeMusicFromZero(Settings.musicVolume, 30);
 	}

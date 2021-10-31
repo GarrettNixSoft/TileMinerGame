@@ -7,6 +7,7 @@ import com.floober.engine.util.math.MathUtil;
 import com.floober.engine.util.math.RandomUtil;
 import com.floober.miner.tilemap.data.ChunkFile;
 import com.floober.miner.util.ChunkImageGenerator;
+import jdk.jfr.ContentType;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -172,11 +173,22 @@ public class MapGenerator {
 		return new Chunk(Chunk.generateChunkID(r, c), tiles);
 	}
 
+	// TILE LEVELS
 	private static final int START = 8;
 	private static final int rockStartLevel = START + 32;
 	private static final int rockFillLevel = rockStartLevel + 256;
 	private static final int stoneStartLevel = START + 128;
 	private static final int stoneFillLevel = START + 512;
+
+	// ORE LEVELS
+	private static final int coalStart = START + 1;
+	private static final int coalEnd = START + 128;
+	private static final int ironStart = START + 64;
+	private static final int ironEnd = START + 256;
+	private static final int silverStart = START + 128;
+	private static final int silverEnd = START + 512;
+	private static final int goldStart = START + 192;
+	private static final int goldEnd = START + 512 + 128;
 
 	private static Tile generateTile(int depth) {
 		byte type = -1;
@@ -185,7 +197,7 @@ public class MapGenerator {
 		if (depth == START) {
 			type = getType(TileType.GRASS);
 		}
-		// generate solid tiles starting on the 9th row
+		// SELECT TILE TYPE
 		else if (depth > START) {
 			if (depth < rockStartLevel) { // dirt only
 				type = getType(TileType.DIRT);
@@ -214,9 +226,7 @@ public class MapGenerator {
 						type = Math.random() < stoneProbability ? getType(TileType.STONE) : getType(TileType.DIRT);
 
 					}
-
 				}
-
 			}
 			else if (depth < stoneFillLevel) { // rock and stone
 
@@ -231,6 +241,48 @@ public class MapGenerator {
 				type = getType(TileType.STONE);
 			}
 		}
+		// SELECT CONTENTS TYPE
+		if (depth > coalStart) {
+
+			if (depth < coalEnd) {
+
+				// TODO: make this more like a normal distribution
+				if (Math.random() < 0.08) contents = getContents(ContentType.COAL);
+
+				else if (depth > ironStart) {
+					if (Math.random() < 0.08) contents = getContents(ContentType.IRON);
+				}
+
+			}
+			else if (depth < ironEnd) {
+
+				if (Math.random() < 0.08) contents = getContents(ContentType.IRON);
+
+				else if (depth > silverStart) {
+					if (Math.random() < 0.08) contents = getContents(ContentType.SILVER);
+				}
+
+			}
+
+			else if (depth < silverEnd) {
+
+				if (Math.random() < 0.08) contents = getContents(ContentType.SILVER);
+
+				else if (Math.random() < 0.08) contents = getContents(ContentType.GOLD);
+
+			}
+
+			else if (depth < goldEnd) {
+
+				if (Math.random() < 0.08) contents = getContents(ContentType.GOLD);
+
+			}
+
+			// TODO add more ore types
+
+
+		}
+
 		return new Tile(type, contents);
 	}
 
@@ -243,8 +295,21 @@ public class MapGenerator {
 		};
 	}
 
+	private static byte getContents(ContentType type) {
+		return switch (type) {
+			case COAL -> RandomUtil.getByte(2);
+			case IRON -> RandomUtil.getByte(2, 4);
+			case SILVER -> RandomUtil.getByte(4, 6);
+			case GOLD -> RandomUtil.getByte(6, 8);
+		};
+	}
+
 	private enum TileType {
 		GRASS, DIRT, ROCK, STONE
+	}
+
+	private enum ContentType {
+		COAL, IRON, SILVER, GOLD
 	}
 
 }

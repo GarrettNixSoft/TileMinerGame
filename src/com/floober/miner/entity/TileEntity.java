@@ -3,6 +3,8 @@ package com.floober.miner.entity;
 import com.floober.engine.entity.core.Entity;
 import com.floober.miner.tilemap.Tile;
 import com.floober.miner.tilemap.TileMap;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 
 public abstract class TileEntity extends Entity {
 
@@ -32,6 +34,10 @@ public abstract class TileEntity extends Entity {
 	protected void setMapPosition() {
 		xmap = tileMap.getX();
 		ymap = tileMap.getY();
+	}
+
+	public Vector2f getMapPosition() {
+		return new Vector2f(x + xmap, y + ymap);
 	}
 
 	@Override

@@ -2,6 +2,8 @@ package com.floober.miner.entity;
 
 import com.floober.engine.display.DisplayManager;
 import com.floober.engine.renderEngine.Render;
+import com.floober.engine.renderEngine.lights.Light;
+import com.floober.engine.renderEngine.lights.LightMaster;
 import com.floober.engine.renderEngine.util.Layers;
 import com.floober.engine.renderEngine.util.color.Colors;
 import com.floober.engine.util.Logger;
@@ -17,7 +19,7 @@ public class Player extends TileEntity {
 	private final float BOOST_MULTIPLIER = 2;
 	private final float DIG_MULTIPLIER = 0.4f;
 
-	private final float centerRange = 1f;
+//	private final float centerRange = 1f;
 
 	// map movement
 	private boolean drilling;
@@ -26,6 +28,9 @@ public class Player extends TileEntity {
 	private int rowTarget;
 	private int colTarget;
 
+	// map light
+	private Light flashlight;
+
 	public Player(TileMap tileMap) {
 		super(tileMap);
 		x = 608;
@@ -33,6 +38,9 @@ public class Player extends TileEntity {
 		width = height = 64;
 		moveSpeed = DEFAULT_SPEED;
 		layer = Layers.DEFAULT_LAYER + 2;
+		// player's light
+		flashlight = new Light(getPosition(), Colors.WHITE, 1.2f, 120, 165, 200);
+		LightMaster.addLight(flashlight);
 	}
 
 	// GETTERS
@@ -238,13 +246,20 @@ public class Player extends TileEntity {
 		if ((up || down) && (left || right)) {
 			up = down = false;
 		}
+
+		// TESTING: Control light
+		//
+
 	}
 
 	@Override
 	public void update() {
+		// move/drill
 		if (drilling) checkDrillingFinished();
 		else checkDrilling();
 		fixBounds();
+		// update light
+		flashlight.position().set(getMapPosition());
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.floober.engine.renderEngine.elements;
 
 import com.floober.engine.renderEngine.textures.TextureAtlas;
+import com.floober.engine.util.Logger;
 import org.joml.Vector4f;
 
 public class TileElement extends TextureElement {
@@ -18,6 +19,8 @@ public class TileElement extends TextureElement {
 	private boolean hasTransparency;
 	private float type, contents;
 
+	private int depth;
+
 	public TileElement(TextureAtlas typeAtlas, TextureAtlas contentsAtlas, TextureAtlas destroyedAtlas, byte type, byte contents, float x, float y, int layer, int tileSize) {
 		super(null, x, y, layer, tileSize, tileSize, false);
 		if (typeAtlas == null) throw new IllegalArgumentException("typeAtlas is null!");
@@ -33,7 +36,7 @@ public class TileElement extends TextureElement {
 		setTypeAndContents(type, contents);
 	}
 
-	private void setTextureOffset(Vector4f offset, byte index) {
+	private void setTypeOffset(Vector4f offset, byte index) {
 		int column = index % typeAtlas.numRows();
 		int row = index / typeAtlas.numRows();
 		int tileOffsetPixels = (int) (width * 0.05);
@@ -45,11 +48,26 @@ public class TileElement extends TextureElement {
 //		Logger.log("Offsets for index " + index + " computed: " + offset);
 	}
 
+	private void setContentsOffset(Vector4f offset, byte index) {
+		int column = index % contentsAtlas.numRows();
+		int row = index / contentsAtlas.numRows();
+		int tileOffsetPixels = (int) (width * 0.05);
+		float tileOffsetCoords = (float) tileOffsetPixels / contentsAtlas.width();
+		offset.x = (float) column / contentsAtlas.numRows() + tileOffsetCoords;
+		offset.y = (float) row / contentsAtlas.numRows() + tileOffsetCoords;
+		offset.z = offset.x + 1f / contentsAtlas.numRows() - tileOffsetCoords * 2;
+		offset.w = offset.y + 1f / contentsAtlas.numRows() - tileOffsetCoords * 2;
+//		Logger.log("Offsets for index " + index + " computed: " + offset);
+	}
+
 	public void setTypeAndContents(byte type, byte contents) {
 		this.type = type;
 		this.contents = contents;
-		setTextureOffset(typeTextureOffsets, type);
-		setTextureOffset(contentsTextureOffsets, contents);
+		setTypeOffset(typeTextureOffsets, type);
+		setContentsOffset(contentsTextureOffsets, contents);
+//		if (type == 0) 		Logger.log("type 0 offsets     = " + typeTextureOffsets);
+//		if (contents == 0) 	Logger.log("contents 0 offsets = " + contentsTextureOffsets);
+//		if (contents != -1) Logger.log("Type texture offsets (" + type + ", " + contents + "): " + typeTextureOffsets + "; contents texture offsets: " + contentsTextureOffsets);
 	}
 
 	public void setRenderingAtlas(AtlasType atlasType) {
@@ -73,6 +91,11 @@ public class TileElement extends TextureElement {
 	public Vector4f getTypeTextureOffsets() {
 		return typeTextureOffsets;
 	}
+
+	public Vector4f getContentsTextureOffsets() {
+		return contentsTextureOffsets;
+	}
+
 	public boolean hasTransparency() { return hasTransparency; }
 
 	public float getType() {
@@ -81,6 +104,14 @@ public class TileElement extends TextureElement {
 
 	public float getContents() {
 		return contents;
+	}
+
+	public int getDepth() {
+		return depth;
+	}
+
+	public void setDepth(int depth) {
+		this.depth = depth;
 	}
 
 	// SETTERS

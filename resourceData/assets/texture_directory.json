@@ -6,7 +6,7 @@
 	},
 	"texture_sets": {
 		"sample": {
-			"path": "tilesets/tiles_base.png",
+			"path": "tilesets/tiles_ore.png",
 			"tex_width": 64,
 			"tex_height": 64
 		}
@@ -29,6 +29,10 @@
 		},
 		"tiles_ore": {
 			"path": "tilesets/tiles_ore.png",
+			"rows": 8
+		},
+		"tiles_content_debug": {
+			"path": "tilesets/debug2.png",
 			"rows": 8
 		},
 		"tiles_destroyed": {

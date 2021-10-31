@@ -341,18 +341,11 @@ public class TileMap {
 	}
 
 	private void renderChunk(int r, int c) {
-		// stop if all available tiles are already rendered
-//		if (tileRenderRow >= rowsToDraw && tileRenderCol >= colsToDraw) {
-//			Logger.log("Not rendering any tiles from chunk [" + r + ", " + c + "]; screen is already full");
-//			return;
-//		}
-
 		// get the chunk
 		Chunk currentChunk = screenChunks[r][c];
 
 		// if this chunk is null (happens when the right or bottom edge of a map is reached), skip rendering
 		if (currentChunk == null) return;
-
 
 		// get chunk rendering offsets
 		// GET THE STARTING SCREEN TILE POSITIONS
@@ -375,37 +368,17 @@ public class TileMap {
 			return;
 		}
 
-
-
-
 		// get starting offsets for this chunk
 		int startRow = r == 0 ? tileRowOffset : 0; // offsets only apply to chunk row 0 and col 0
 		int startCol = c == 0 ? tileColOffset : 0; // all other chunks render in full (or until screen tile limit is met)
 		if (startRow != 0) startRow -= tilePad / 2; // add padding to the top
 		if (startCol != 0) startCol -= tilePad / 2; // add padding to the left
 
-
-//		if (chunkRowOffset >= 1 || chunkColOffset >= 1) {
-//			Logger.log("Attempting to render Chunk[" + (r + chunkRowOffset) + "][" + (c + chunkColOffset) + "]");
-//		}
-
-//		if (KeyInput.isPressed(KeyInput.P)) {
-//			ArrayPrinter.print(screenChunks);
-//			Logger.log("tileRowOffset = " + tileRowOffset + ", tileColOffset = " + tileColOffset);
-//			Logger.log("tileRowOffsetRaw = " + tileRowOffsetRaw + ", tileColOffsetRaw = " + tileColOffsetRaw);
-//			Logger.log(currentChunk.id() + " is at screenRowStart " + screenRowStart + " and screenColStart " + screenColStart);
-//		}
-
-
-//		Logger.log("Starting to render chunk [" + r + "," + c + "]; starting from tile: [" + startRow + "," + startCol + "]");
-//		Logger.log("Chunk[" + r + "][" + c + "]; rendering from row/col offset = [" + startRow + "," + startCol + "]");
-
 		// an iterator, since screenColStart is how we return to the beginning each new row
 		int screenRow, screenCol;
 
 		// get absolute chunk position
 		int chunkRow = currentChunk.getAbsoluteRow();
-		int chunkCol = currentChunk.getAbsoluteCol();
 
 		// render all visible tiles in the chunk
 		screenRow = screenRowStart;
@@ -418,7 +391,6 @@ public class TileMap {
 				}
 				// get the tile
 				Tile tileToRender = currentChunk.getTileAt(row, col);
-//				if (r > 0 && row == 0 && col == 0) Logger.log("First tile of Chunk[1][x] is " + tileToRender);
 				// render it only if its type indicates it would be visible (not -1)
 				if (chunkRow > 0 || row > 7) { // don't render tiles that don't exist
 					// determine which screen element to modify
@@ -434,11 +406,9 @@ public class TileMap {
 					// get position to render this tile at
 					float tileX = x + (col * Tile.SIZE) + ((c + chunkColOffset) * CHUNK_SIZE_PIXELS);
 					float tileY = y + (row * Tile.SIZE) + ((r + chunkRowOffset) * CHUNK_SIZE_PIXELS);
-//					byte debugContents = (byte) (tileRenderRow * 8 + tileRenderCol);
+					int tileDepth = (int) (tileY - y) - (Tile.SIZE * 8);
+					tileElement.setDepth(tileDepth);
 					tileElement.setTypeAndContents(renderType, tileToRender.contents());
-
-					if (tileToRender.contents() != -1) Logger.log("Tile with contents " + tileToRender.contents() + " on screen");
-
 					tileElement.setPosition(tileX, tileY);
 					tileElement.transform();
 					tileElement.render();

@@ -13,6 +13,7 @@ public class KeyInput {
 	public static boolean[] keyState = new boolean[NUM_KEYS];
 	public static boolean[] prevKeyState = new boolean[NUM_KEYS];
 
+	// LETTER KEYS
 	public static final int A = 1;
 	public static final int B = 2;
 	public static final int C = 3;
@@ -39,10 +40,14 @@ public class KeyInput {
 	public static final int X = 24;
 	public static final int Y = 25;
 	public static final int Z = 26;
+
+	// ARROW KEYS
 	public static final int UP = 27;
 	public static final int DOWN = 28;
 	public static final int LEFT = 29;
 	public static final int RIGHT = 30;
+
+	// LETTER-AREA UTILITY KEYS
 	public static final int SPACE = 31;
 	public static final int ENTER = 32;
 	public static final int LSHIFT = 33;
@@ -50,6 +55,17 @@ public class KeyInput {
 	public static final int LCONTROL = 35;
 	public static final int RCONTROL = 36;
 	public static final int ESC = 37;
+	public static final int LBRACKET = 64;
+	public static final int RBRACKET = 65;
+	public static final int BACKSLASH = 66;
+	public static final int SEMICOLON = 85;
+	public static final int APOSTROPHE = 86;
+	public static final int COMMA = 87;
+	public static final int PERIOD = 88;
+	public static final int SLASH = 89;
+	public static final int TAB = 90;
+
+	// NUMBER KEYS (ABOVE LETTERS)
 	public static final int KEY_1 = 38;
 	public static final int KEY_2 = 39;
 	public static final int KEY_3 = 40;
@@ -59,7 +75,9 @@ public class KeyInput {
 	public static final int KEY_7 = 44;
 	public static final int KEY_8 = 45;
 	public static final int KEY_9 = 46;
-	public static final int BACKSPACE = 47;
+	public static final int KEY_0 = 63;
+
+	// FUNCTION KEYS
 	public static final int F1 = 48;
 	public static final int F2 = 49;
 	public static final int F3 = 50;
@@ -72,10 +90,43 @@ public class KeyInput {
 	public static final int F10 = 57;
 	public static final int F11 = 58;
 	public static final int F12 = 59;
+
+	// KEYS NEXT TO NUMBER KEYS
+	public static final int GRAVE = 67;
 	public static final int PLUS = 60;
 	public static final int MINUS = 61;
+	public static final int BACKSPACE = 47;
+
+	// 3x3 UTILITY KEYS
+	public static final int PRINT_SCREEN = 91;
+	public static final int SCROLL_LOCK = 92;
+	public static final int PAUSE_BREAK = 93;
+	public static final int INSERT = 68;
+	public static final int DELETE = 69;
+	public static final int HOME = 94;
+	public static final int END = 95;
+	public static final int PAGE_UP = 96;
+	public static final int PAGE_DOWN = 97;
+	public static final int MENU = 98;
+
+	// KEYPAD KEYS
 	public static final int KP_ENTER = 62;
-	public static final int KEY_0 = 63;
+	public static final int KP_0 = 70;
+	public static final int KP_1 = 71;
+	public static final int KP_2 = 72;
+	public static final int KP_3 = 73;
+	public static final int KP_4 = 74;
+	public static final int KP_5 = 75;
+	public static final int KP_6 = 76;
+	public static final int KP_7 = 77;
+	public static final int KP_8 = 78;
+	public static final int KP_9 = 79;
+	public static final int KP_PLUS = 80;
+	public static final int KP_MINUS = 81;
+	public static final int KP_ASTERISK = 82;
+	public static final int KP_SLASH = 83;
+	public static final int KP_DECIMAL = 84;
+
 
 	public static void update() {
 		System.arraycopy(keyState, 0, prevKeyState, 0, NUM_KEYS);
@@ -142,6 +193,41 @@ public class KeyInput {
 		keyState[PLUS] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_ADD) == GLFW_PRESS;
 		keyState[MINUS] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS;
 		keyState[KP_ENTER] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_ENTER) == GLFW_PRESS;
+		keyState[LBRACKET] = glfwGetKey(GameWindow.windowID, GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS;
+		keyState[RBRACKET] = glfwGetKey(GameWindow.windowID, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS;
+		keyState[BACKSLASH] = glfwGetKey(GameWindow.windowID, GLFW_KEY_BACKSLASH) == GLFW_PRESS;
+		keyState[GRAVE] = glfwGetKey(GameWindow.windowID, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS;
+		keyState[INSERT] = glfwGetKey(GameWindow.windowID, GLFW_KEY_INSERT) == GLFW_PRESS;
+		keyState[DELETE] = glfwGetKey(GameWindow.windowID, GLFW_KEY_DELETE) == GLFW_PRESS;
+		keyState[KP_0] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_0) == GLFW_PRESS;
+		keyState[KP_1] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_1) == GLFW_PRESS;
+		keyState[KP_2] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_2) == GLFW_PRESS;
+		keyState[KP_3] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_3) == GLFW_PRESS;
+		keyState[KP_4] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_4) == GLFW_PRESS;
+		keyState[KP_5] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_5) == GLFW_PRESS;
+		keyState[KP_6] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_6) == GLFW_PRESS;
+		keyState[KP_7] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_7) == GLFW_PRESS;
+		keyState[KP_8] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_8) == GLFW_PRESS;
+		keyState[KP_9] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_9) == GLFW_PRESS;
+		keyState[KP_PLUS] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_ADD) == GLFW_PRESS;
+		keyState[KP_MINUS] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS;
+		keyState[KP_ASTERISK] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_MULTIPLY) == GLFW_PRESS;
+		keyState[KP_SLASH] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_DIVIDE) == GLFW_PRESS;
+		keyState[KP_DECIMAL] = glfwGetKey(GameWindow.windowID, GLFW_KEY_KP_DECIMAL) == GLFW_PRESS;
+		keyState[SEMICOLON] = glfwGetKey(GameWindow.windowID, GLFW_KEY_SEMICOLON) == GLFW_PRESS;
+		keyState[APOSTROPHE] = glfwGetKey(GameWindow.windowID, GLFW_KEY_APOSTROPHE) == GLFW_PRESS;
+		keyState[COMMA] = glfwGetKey(GameWindow.windowID, GLFW_KEY_COMMA) == GLFW_PRESS;
+		keyState[PERIOD] = glfwGetKey(GameWindow.windowID, GLFW_KEY_PERIOD) == GLFW_PRESS;
+		keyState[SLASH] = glfwGetKey(GameWindow.windowID, GLFW_KEY_SLASH) == GLFW_PRESS;
+		keyState[TAB] = glfwGetKey(GameWindow.windowID, GLFW_KEY_TAB) == GLFW_PRESS;
+		keyState[PRINT_SCREEN] = glfwGetKey(GameWindow.windowID, GLFW_KEY_PRINT_SCREEN) == GLFW_PRESS;
+		keyState[SCROLL_LOCK] = glfwGetKey(GameWindow.windowID, GLFW_KEY_SCROLL_LOCK) == GLFW_PRESS;
+		keyState[PAUSE_BREAK] = glfwGetKey(GameWindow.windowID, GLFW_KEY_PAUSE) == GLFW_PRESS;
+		keyState[HOME] = glfwGetKey(GameWindow.windowID, GLFW_KEY_HOME) == GLFW_PRESS;
+		keyState[END] = glfwGetKey(GameWindow.windowID, GLFW_KEY_END) == GLFW_PRESS;
+		keyState[PAGE_UP] = glfwGetKey(GameWindow.windowID, GLFW_KEY_PAGE_UP) == GLFW_PRESS;
+		keyState[PAGE_DOWN] = glfwGetKey(GameWindow.windowID, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS;
+		keyState[MENU] = glfwGetKey(GameWindow.windowID, GLFW_KEY_MENU) == GLFW_PRESS;
 	}
 
 	// CHECK IF A KEY IS HELD DOWN

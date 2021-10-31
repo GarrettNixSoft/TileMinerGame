@@ -1,5 +1,6 @@
 package com.floober.engine.renderEngine.shaders.textures;
 
+import com.floober.engine.display.Display;
 import com.floober.engine.renderEngine.lights.Light;
 import com.floober.engine.renderEngine.lights.LightMaster;
 import com.floober.engine.renderEngine.shaders.ShaderCode;
@@ -167,7 +168,9 @@ public class TextureShader extends ShaderProgram {
 		int size = lights.size();
 		for (int i = 0; i < LightMaster.MAX_LIGHTS; ++i) {
 			if (i < size) {
-				super.loadVector(location_lightPositions[i], lights.get(i).position());
+				Vector2f position = new Vector2f(lights.get(i).position());
+				position.mul(Display.SCREEN_RATIO);
+				super.loadVector(location_lightPositions[i], position);
 				super.loadVector(location_lightColors[i], lights.get(i).color());
 				super.loadFloat(location_lightIntensities[i], lights.get(i).intensity());
 				super.loadFloat(location_lightInnerRadii[i], lights.get(i).innerRadius());
